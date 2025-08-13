@@ -1,6 +1,10 @@
 @ApiBaseUrl = http://localhost:5280
+@MockApiBaseUrl = http://localhost:8080
 
 GET {{ApiBaseUrl}}/health
 Accept: application/json
 
 ###
+
+GET {{MockApiBaseUrl}}/api/products
+Accept: application/json
