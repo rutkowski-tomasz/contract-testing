@@ -6,5 +6,5 @@ Accept: application/json
 
 ###
 
-GET {{MockApiBaseUrl}}/api/products
+GET {{ApiBaseUrl}}/api/products
 Accept: application/json
