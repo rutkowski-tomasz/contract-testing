@@ -1,0 +1,47 @@
+{
+  "consumer": {
+    "name": "contract-testing-app"
+  },
+  "interactions": [
+    {
+      "description": "a request for product list",
+      "providerState": "products exist",
+      "request": {
+        "headers": {
+          "Accept": "application/json"
+        },
+        "method": "GET",
+        "path": "/api/products"
+      },
+      "response": {
+        "body": [
+          {
+            "description": "Description for Test Product",
+            "id": 1,
+            "name": "Test Product",
+            "price": 9.99
+          }
+        ],
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "15.0.1"
+    },
+    "pactRust": {
+      "ffi": "0.4.22",
+      "models": "1.2.3"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "ContractTesting.Api"
+  }
+}
