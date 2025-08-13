@@ -1,5 +1,9 @@
+import ProductList from "./ProductList";
+
 export default function App() {
   return (
-    <>Hello world!</>
+    <>
+      <ProductList />
+    </>
   )
 }
