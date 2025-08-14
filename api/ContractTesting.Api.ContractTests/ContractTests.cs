@@ -4,17 +4,11 @@ using Xunit.Abstractions;
 
 namespace ContractTesting.Api.ContractTests;
 
-public class SomethingApiTests : IClassFixture<ApiFixture>
+public class ContractTests(
+    ApiFixture fixture,
+    ITestOutputHelper output
+) : IClassFixture<ApiFixture>
 {
-    private readonly ApiFixture fixture;
-    private readonly ITestOutputHelper output;
-
-    public SomethingApiTests(ApiFixture fixture, ITestOutputHelper output)
-    {
-        this.fixture = fixture;
-        this.output = output;
-    }
-
     [Fact]
     public void EnsureSomethingApiHonoursPactWithConsumer()
     {
