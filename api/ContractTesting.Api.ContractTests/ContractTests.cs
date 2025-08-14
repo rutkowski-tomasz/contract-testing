@@ -10,7 +10,7 @@ public class ContractTests(
 ) : IClassFixture<ApiFixture>
 {
     [Fact]
-    public void EnsureSomethingApiHonoursPactWithConsumer()
+    public void EnsureApiHonoursPactWithConsumer()
     {
         var config = new PactVerifierConfig
         {

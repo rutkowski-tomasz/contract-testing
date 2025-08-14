@@ -1,0 +1,42 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  NODE_VERSION: '20.x'
+
+jobs:
+  contract-testing:
+    name: Contract Testing
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install dependencies
+      working-directory: ./app
+      run: npm ci
+
+    - name: Generate Contracts
+      working-directory: ./app
+      run: npm run test:pact
+
+    - name: Verify Provider Contracts
+      working-directory: ./api
+      run: dotnet test
+
+
