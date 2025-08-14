@@ -8,3 +8,61 @@ Accept: application/json
 
 GET {{ApiBaseUrl}}/api/products
 Accept: application/json
+
+###
+
+# Get a specific product by ID
+GET {{ApiBaseUrl}}/api/products/1
+Accept: application/json
+
+###
+
+# Create a new product
+POST {{ApiBaseUrl}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Test Product",
+  "description": "A test product for API testing",
+  "price": 19.99
+}
+
+###
+
+# Update an existing product
+PUT {{ApiBaseUrl}}/api/products/1
+Content-Type: application/json
+
+{
+  "name": "Updated Product Name",
+  "description": "Updated description for the product",
+  "price": 29.99
+}
+
+###
+
+# Delete a product
+DELETE {{ApiBaseUrl}}/api/products/1
+
+###
+
+# Test with non-existent product ID (should return 404)
+GET {{ApiBaseUrl}}/api/products/999
+Accept: application/json
+
+###
+
+# Test updating non-existent product (should return 404)
+PUT {{ApiBaseUrl}}/api/products/999
+Content-Type: application/json
+
+{
+  "name": "Non-existent Product",
+  "description": "This should fail",
+  "price": 99.99
+}
+
+###
+
+# Test deleting non-existent product (should return 404)
+DELETE {{ApiBaseUrl}}/api/products/999
