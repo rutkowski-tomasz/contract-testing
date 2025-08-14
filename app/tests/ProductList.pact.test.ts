@@ -2,7 +2,7 @@ import path from 'path';
 import { PactV3, MatchersV3 } from '@pact-foundation/pact';
 import axios from 'axios';
 
-const { eachLike, string, integer, decimal } = MatchersV3;
+const { eachLike, string, integer, decimal, like, fromProviderState } = MatchersV3;
 
 const provider = new PactV3({
   consumer: 'contract-testing-app',
@@ -13,8 +13,39 @@ const provider = new PactV3({
 });
 
 describe('Product API Pact Tests', () => {
-  // Test 1: GET /api/products - Fetch all products
-  test('fetches products successfully', async () => {
+  test('authenticates user successfully', () => {
+    const loginRequest = {
+      email: 'admin@example.com',
+      password: 'admin123'
+    };
+
+    return provider
+      .uponReceiving('a login request')
+      .withRequest({
+        method: 'POST',
+        path: '/api/login',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: like(loginRequest),
+      })
+      .willRespondWith({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: {
+          token: string('ey...'),
+        },
+      })
+      .executeTest(async (mockServer) => {
+        const response = await axios.post(`${mockServer.url}/api/login`, loginRequest);
+        expect(response.status).toBe(200);
+        expect(response.data.token).toBeTruthy();
+      });
+  });
+
+  test('fetches products successfully when authenticated', () => {
     const productTemplate = {
       id: integer(1),
       name: string('Test Product'),
@@ -22,14 +53,15 @@ describe('Product API Pact Tests', () => {
       price: decimal(9.99),
     };
 
-    await provider
-      .given('products exist')
-      .uponReceiving('a request for product list')
+    return provider
+      .given('products exist and user is authenticated')
+      .uponReceiving('a request for all products from an authenticated user')
       .withRequest({
         method: 'GET',
         path: '/api/products',
         headers: {
           Accept: 'application/json',
+          Authorization: fromProviderState("Bearer ${token}", 'Bearer an-example-token-for-consumer-test'),
         },
       })
       .willRespondWith({
@@ -41,19 +73,15 @@ describe('Product API Pact Tests', () => {
       })
       .executeTest(async (mockServer) => {
         const response = await axios.get(`${mockServer.url}/api/products`, {
-          headers: { Accept: 'application/json' },
+          headers: {
+            Accept: 'application/json',
+            Authorization: 'Bearer an-example-token-for-consumer-test',
+          },
         });
 
         expect(response.status).toBe(200);
         expect(Array.isArray(response.data)).toBe(true);
         expect(response.data.length).toBeGreaterThanOrEqual(1);
-        
-        const firstProduct = response.data[0];
-        expect(typeof firstProduct.id).toBe('number');
-        expect(Number.isInteger(firstProduct.id)).toBe(true);
-        expect(typeof firstProduct.name).toBe('string');
-        expect(typeof firstProduct.description).toBe('string');
-        expect(typeof firstProduct.price).toBe('number');
       });
   });
 
@@ -68,13 +96,14 @@ describe('Product API Pact Tests', () => {
     };
 
     await provider
-      .given(`product with id ${productId} exists`)
+      .given(`product with id ${productId} exists and user is authenticated`)
       .uponReceiving('a request for a specific product by ID')
       .withRequest({
         method: 'GET',
         path: `/api/products/${productId}`,
         headers: {
           Accept: 'application/json',
+          Authorization: fromProviderState("Bearer ${token}", 'Bearer an-example-token-for-consumer-test'),
         },
       })
       .willRespondWith({
@@ -86,9 +115,11 @@ describe('Product API Pact Tests', () => {
       })
       .executeTest(async (mockServer) => {
         const response = await axios.get(`${mockServer.url}/api/products/${productId}`, {
-          headers: { Accept: 'application/json' },
+          headers: { 
+            Accept: 'application/json',
+            Authorization: 'Bearer an-example-token-for-consumer-test',
+          },
         });
-
         expect(response.status).toBe(200);
         expect(typeof response.data.id).toBe('number');
         expect(typeof response.data.name).toBe('string');
@@ -102,13 +133,14 @@ describe('Product API Pact Tests', () => {
     const productId = 999;
 
     await provider
-      .given(`product with id ${productId} does not exist`)
+      .given(`user is authenticated`)
       .uponReceiving('a request for a non-existent product by ID')
       .withRequest({
         method: 'GET',
         path: `/api/products/${productId}`,
         headers: {
           Accept: 'application/json',
+          Authorization: fromProviderState("Bearer ${token}", 'Bearer an-example-token-for-consumer-test'),
         },
       })
       .willRespondWith({
@@ -117,7 +149,10 @@ describe('Product API Pact Tests', () => {
       .executeTest(async (mockServer) => {
         try {
           await axios.get(`${mockServer.url}/api/products/${productId}`, {
-            headers: { Accept: 'application/json' },
+            headers: { 
+              Accept: 'application/json',
+              Authorization: 'Bearer an-example-token-for-consumer-test',
+            },
           });
           // If we reach here, the test should fail
           expect(true).toBe(false);
@@ -143,7 +178,7 @@ describe('Product API Pact Tests', () => {
     };
 
     await provider
-      .given('no products exist with this data')
+      .given('user is authenticated')
       .uponReceiving('a request to create a new product')
       .withRequest({
         method: 'POST',
@@ -151,6 +186,7 @@ describe('Product API Pact Tests', () => {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
+          Authorization: fromProviderState("Bearer ${token}", 'Bearer an-example-token-for-consumer-test'),
         },
         body: newProduct,
       })
@@ -166,10 +202,10 @@ describe('Product API Pact Tests', () => {
         const response = await axios.post(`${mockServer.url}/api/products`, newProduct, {
           headers: { 
             'Content-Type': 'application/json',
-            Accept: 'application/json' 
+            Accept: 'application/json',
+            Authorization: 'Bearer an-example-token-for-consumer-test',
           },
         });
-
         expect(response.status).toBe(201);
         expect(response.headers.location).toBeTruthy();
         expect(typeof response.data.id).toBe('number');
@@ -196,7 +232,7 @@ describe('Product API Pact Tests', () => {
     };
 
     await provider
-      .given(`product with id ${productId} exists`)
+      .given(`product with id ${productId} exists and user is authenticated`)
       .uponReceiving('a request to update an existing product')
       .withRequest({
         method: 'PUT',
@@ -204,6 +240,7 @@ describe('Product API Pact Tests', () => {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
+          Authorization: fromProviderState("Bearer ${token}", 'Bearer an-example-token-for-consumer-test'),
         },
         body: updatedProduct,
       })
@@ -218,10 +255,10 @@ describe('Product API Pact Tests', () => {
         const response = await axios.put(`${mockServer.url}/api/products/${productId}`, updatedProduct, {
           headers: { 
             'Content-Type': 'application/json',
-            Accept: 'application/json' 
+            Accept: 'application/json',
+            Authorization: 'Bearer an-example-token-for-consumer-test',
           },
         });
-
         expect(response.status).toBe(200);
         expect(response.data.id).toBe(productId);
         expect(response.data.name).toBe(updatedProduct.name);
@@ -240,7 +277,7 @@ describe('Product API Pact Tests', () => {
     };
 
     await provider
-      .given(`product with id ${productId} does not exist`)
+      .given(`user is authenticated`)
       .uponReceiving('a request to update a non-existent product')
       .withRequest({
         method: 'PUT',
@@ -248,6 +285,7 @@ describe('Product API Pact Tests', () => {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
+          Authorization: fromProviderState("Bearer ${token}", 'Bearer an-example-token-for-consumer-test'),
         },
         body: updatedProduct,
       })
@@ -259,7 +297,8 @@ describe('Product API Pact Tests', () => {
           await axios.put(`${mockServer.url}/api/products/${productId}`, updatedProduct, {
             headers: { 
               'Content-Type': 'application/json',
-              Accept: 'application/json' 
+              Accept: 'application/json',
+              Authorization: 'Bearer an-example-token-for-consumer-test',
             },
           });
           expect(true).toBe(false);
@@ -274,18 +313,24 @@ describe('Product API Pact Tests', () => {
     const productId = 1;
 
     await provider
-      .given(`product with id ${productId} exists`)
+      .given(`product with id ${productId} exists and user is authenticated`)
       .uponReceiving('a request to delete an existing product')
       .withRequest({
         method: 'DELETE',
         path: `/api/products/${productId}`,
+        headers: {
+          Authorization: fromProviderState("Bearer ${token}", 'Bearer an-example-token-for-consumer-test'),
+        },
       })
       .willRespondWith({
         status: 204,
       })
       .executeTest(async (mockServer) => {
-        const response = await axios.delete(`${mockServer.url}/api/products/${productId}`);
-
+        const response = await axios.delete(`${mockServer.url}/api/products/${productId}`, {
+          headers: {
+            Authorization: 'Bearer an-example-token-for-consumer-test',
+          }
+        });
         expect(response.status).toBe(204);
         expect(response.data).toBe('');
       });
@@ -296,18 +341,25 @@ describe('Product API Pact Tests', () => {
     const productId = 999;
 
     await provider
-      .given(`product with id ${productId} does not exist`)
+      .given(`user is authenticated`)
       .uponReceiving('a request to delete a non-existent product')
       .withRequest({
         method: 'DELETE',
         path: `/api/products/${productId}`,
+        headers: {
+          Authorization: fromProviderState("Bearer ${token}", 'Bearer an-example-token-for-consumer-test'),
+        },
       })
       .willRespondWith({
         status: 404,
       })
       .executeTest(async (mockServer) => {
         try {
-          await axios.delete(`${mockServer.url}/api/products/${productId}`);
+          await axios.delete(`${mockServer.url}/api/products/${productId}`, {
+            headers: {
+              Authorization: 'Bearer an-example-token-for-consumer-test',
+            }
+          });
           expect(true).toBe(false);
         } catch (error) {
           expect(error.response.status).toBe(404);

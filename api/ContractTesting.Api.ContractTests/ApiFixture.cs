@@ -87,9 +87,17 @@ public partial class ApiFixture : IDisposable
         app.MapEndpoints();
         app.MapPost("provider-states", async ([FromBody] ProviderStateRequest request, ApplicationDbContext context) =>
         {
-            if (request.State == "products exist")
+            var result = new Dictionary<string, object>();
+
+            if (request.State.Contains("products exist"))
             {
                 await SeedProductsAsync(context);
+            }
+
+            if (request.State.Contains("user is authenticated"))
+            {
+                var token = AuthService.ValidateAndGenerateToken("admin@example.com", "admin123");
+                result.Add("token", token!);
             }
 
             var match = ProductWithIdExistsRegex().Match(request.State);
@@ -99,7 +107,7 @@ public partial class ApiFixture : IDisposable
                 await SeedProductAsync(productId, context);
             }
 
-            return Results.Ok();
+            return Results.Ok(result);
         });
     }
     

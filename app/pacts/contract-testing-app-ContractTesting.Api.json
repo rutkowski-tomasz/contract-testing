@@ -4,15 +4,86 @@
   },
   "interactions": [
     {
+      "description": "a login request",
+      "request": {
+        "body": {
+          "email": "admin@example.com",
+          "password": "admin123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {}
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "token": "ey..."
+        },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "body": {
+            "$.token": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {},
+          "status": {}
+        },
+        "status": 200
+      }
+    },
+    {
       "description": "a request for a non-existent product by ID",
       "providerStates": [
         {
-          "name": "product with id 999 does not exist"
+          "name": "user is authenticated"
         }
       ],
       "request": {
+        "generators": {
+          "header": {
+            "Authorization": {
+              "expression": "Bearer ${token}",
+              "type": "ProviderState"
+            }
+          }
+        },
         "headers": {
-          "Accept": "application/json"
+          "Accept": "application/json",
+          "Authorization": "Bearer an-example-token-for-consumer-test"
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
         },
         "method": "GET",
         "path": "/api/products/999"
@@ -25,12 +96,33 @@
       "description": "a request for a specific product by ID",
       "providerStates": [
         {
-          "name": "product with id 1 exists"
+          "name": "product with id 1 exists and user is authenticated"
         }
       ],
       "request": {
+        "generators": {
+          "header": {
+            "Authorization": {
+              "expression": "Bearer ${token}",
+              "type": "ProviderState"
+            }
+          }
+        },
         "headers": {
-          "Accept": "application/json"
+          "Accept": "application/json",
+          "Authorization": "Bearer an-example-token-for-consumer-test"
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
         },
         "method": "GET",
         "path": "/api/products/1"
@@ -87,15 +179,36 @@
       }
     },
     {
-      "description": "a request for product list",
+      "description": "a request for all products from an authenticated user",
       "providerStates": [
         {
-          "name": "products exist"
+          "name": "products exist and user is authenticated"
         }
       ],
       "request": {
+        "generators": {
+          "header": {
+            "Authorization": {
+              "expression": "Bearer ${token}",
+              "type": "ProviderState"
+            }
+          }
+        },
         "headers": {
-          "Accept": "application/json"
+          "Accept": "application/json",
+          "Authorization": "Bearer an-example-token-for-consumer-test"
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
         },
         "method": "GET",
         "path": "/api/products"
@@ -166,7 +279,7 @@
       "description": "a request to create a new product",
       "providerStates": [
         {
-          "name": "no products exist with this data"
+          "name": "user is authenticated"
         }
       ],
       "request": {
@@ -175,9 +288,31 @@
           "name": "New Test Product",
           "price": 19.99
         },
+        "generators": {
+          "header": {
+            "Authorization": {
+              "expression": "Bearer ${token}",
+              "type": "ProviderState"
+            }
+          }
+        },
         "headers": {
           "Accept": "application/json",
+          "Authorization": "Bearer an-example-token-for-consumer-test",
           "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {},
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
         },
         "method": "POST",
         "path": "/api/products"
@@ -247,10 +382,33 @@
       "description": "a request to delete a non-existent product",
       "providerStates": [
         {
-          "name": "product with id 999 does not exist"
+          "name": "user is authenticated"
         }
       ],
       "request": {
+        "generators": {
+          "header": {
+            "Authorization": {
+              "expression": "Bearer ${token}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer an-example-token-for-consumer-test"
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
         "method": "DELETE",
         "path": "/api/products/999"
       },
@@ -262,10 +420,33 @@
       "description": "a request to delete an existing product",
       "providerStates": [
         {
-          "name": "product with id 1 exists"
+          "name": "product with id 1 exists and user is authenticated"
         }
       ],
       "request": {
+        "generators": {
+          "header": {
+            "Authorization": {
+              "expression": "Bearer ${token}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer an-example-token-for-consumer-test"
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
         "method": "DELETE",
         "path": "/api/products/1"
       },
@@ -277,7 +458,7 @@
       "description": "a request to update a non-existent product",
       "providerStates": [
         {
-          "name": "product with id 999 does not exist"
+          "name": "user is authenticated"
         }
       ],
       "request": {
@@ -286,9 +467,31 @@
           "name": "Updated Product Name",
           "price": 29.99
         },
+        "generators": {
+          "header": {
+            "Authorization": {
+              "expression": "Bearer ${token}",
+              "type": "ProviderState"
+            }
+          }
+        },
         "headers": {
           "Accept": "application/json",
+          "Authorization": "Bearer an-example-token-for-consumer-test",
           "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {},
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
         },
         "method": "PUT",
         "path": "/api/products/999"
@@ -301,7 +504,7 @@
       "description": "a request to update an existing product",
       "providerStates": [
         {
-          "name": "product with id 1 exists"
+          "name": "product with id 1 exists and user is authenticated"
         }
       ],
       "request": {
@@ -310,9 +513,31 @@
           "name": "Updated Product Name",
           "price": 29.99
         },
+        "generators": {
+          "header": {
+            "Authorization": {
+              "expression": "Bearer ${token}",
+              "type": "ProviderState"
+            }
+          }
+        },
         "headers": {
           "Accept": "application/json",
+          "Authorization": "Bearer an-example-token-for-consumer-test",
           "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {},
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
         },
         "method": "PUT",
         "path": "/api/products/1"
