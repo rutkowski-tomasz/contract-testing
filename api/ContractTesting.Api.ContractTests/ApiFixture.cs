@@ -5,10 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Bogus;
 using Microsoft.AspNetCore.Http;
+using System.Text.RegularExpressions;
 
 namespace ContractTesting.Api.ContractTests;
 
-public class ApiFixture : IDisposable
+public partial class ApiFixture : IDisposable
 {
     private readonly WebApplication app;
     public Uri ServerUri { get; }
@@ -66,6 +67,13 @@ public class ApiFixture : IDisposable
                 await SeedProductsAsync(context);
             }
 
+            var match = ProductWithIdExistsRegex().Match(request.State);
+            if (match.Success)
+            {
+                int productId = int.Parse(match.Groups[1].Value);
+                await SeedProductAsync(productId, context);
+            }
+
             return Results.Ok();
         });
     }
@@ -86,6 +94,29 @@ public class ApiFixture : IDisposable
         await context.SaveChangesAsync();
     }
 
+    private static async Task SeedProductAsync(int productId, ApplicationDbContext context)
+    {
+        var existingProduct = await context.Products.FindAsync(productId);
+        if (existingProduct is not null)
+        {
+            return;
+        }
+
+        var productFaker = new Faker<Product>()
+            .CustomInstantiator(f => new Product
+            {
+                Id = productId,
+                Name = f.Commerce.ProductName(),
+                Description = f.Commerce.ProductDescription(),
+                Price = f.Random.Decimal(1, 100)
+            });
+            
+        var product = productFaker.Generate();
+        
+        context.Products.Add(product);
+        await context.SaveChangesAsync();
+    }
+
     public class ProviderStateRequest
     {
         public string State { get; set; } = string.Empty;
@@ -97,4 +128,7 @@ public class ApiFixture : IDisposable
         app.DisposeAsync().AsTask().Wait();
         GC.SuppressFinalize(this);
     }
+
+    [GeneratedRegex(@"product with id (\d+) exists")]
+    private static partial Regex ProductWithIdExistsRegex();
 }

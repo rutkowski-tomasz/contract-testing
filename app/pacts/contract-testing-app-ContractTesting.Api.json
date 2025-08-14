@@ -4,8 +4,95 @@
   },
   "interactions": [
     {
+      "description": "a request for a non-existent product by ID",
+      "providerStates": [
+        {
+          "name": "product with id 999 does not exist"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": "application/json"
+        },
+        "method": "GET",
+        "path": "/api/products/999"
+      },
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "description": "a request for a specific product by ID",
+      "providerStates": [
+        {
+          "name": "product with id 1 exists"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": "application/json"
+        },
+        "method": "GET",
+        "path": "/api/products/1"
+      },
+      "response": {
+        "body": {
+          "description": "Description for Test Product",
+          "id": 1,
+          "name": "Test Product",
+          "price": 9.99
+        },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {},
+          "status": {}
+        },
+        "status": 200
+      }
+    },
+    {
       "description": "a request for product list",
-      "providerState": "products exist",
+      "providerStates": [
+        {
+          "name": "products exist"
+        }
+      ],
       "request": {
         "headers": {
           "Accept": "application/json"
@@ -25,6 +112,259 @@
         "headers": {
           "Content-Type": "application/json; charset=utf-8"
         },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$[*].description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[*].id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$[*].name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[*].price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {},
+          "status": {}
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to create a new product",
+      "providerStates": [
+        {
+          "name": "no products exist with this data"
+        }
+      ],
+      "request": {
+        "body": {
+          "description": "Description for new product",
+          "name": "New Test Product",
+          "price": 19.99
+        },
+        "headers": {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/products"
+      },
+      "response": {
+        "body": {
+          "description": "Description for new product",
+          "id": 1,
+          "name": "New Test Product",
+          "price": 19.99
+        },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Location": "/api/products/1"
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "status": {}
+        },
+        "status": 201
+      }
+    },
+    {
+      "description": "a request to delete a non-existent product",
+      "providerStates": [
+        {
+          "name": "product with id 999 does not exist"
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "path": "/api/products/999"
+      },
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "description": "a request to delete an existing product",
+      "providerStates": [
+        {
+          "name": "product with id 1 exists"
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "path": "/api/products/1"
+      },
+      "response": {
+        "status": 204
+      }
+    },
+    {
+      "description": "a request to update a non-existent product",
+      "providerStates": [
+        {
+          "name": "product with id 999 does not exist"
+        }
+      ],
+      "request": {
+        "body": {
+          "description": "Updated product description",
+          "name": "Updated Product Name",
+          "price": 29.99
+        },
+        "headers": {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/products/999"
+      },
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "description": "a request to update an existing product",
+      "providerStates": [
+        {
+          "name": "product with id 1 exists"
+        }
+      ],
+      "request": {
+        "body": {
+          "description": "Updated product description",
+          "name": "Updated Product Name",
+          "price": 29.99
+        },
+        "headers": {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/products/1"
+      },
+      "response": {
+        "body": {
+          "description": "Updated product description",
+          "id": 1,
+          "name": "Updated Product Name",
+          "price": 29.99
+        },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {},
+          "status": {}
+        },
         "status": 200
       }
     }
@@ -38,7 +378,7 @@
       "models": "1.2.3"
     },
     "pactSpecification": {
-      "version": "2.0.0"
+      "version": "3.0.0"
     }
   },
   "provider": {
