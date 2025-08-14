@@ -6,6 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Bogus;
 using Microsoft.AspNetCore.Http;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using ContractTesting.Api;
 
 namespace ContractTesting.Api.ContractTests;
 
@@ -41,6 +45,23 @@ public partial class ApiFixture : IDisposable
         services.AddExceptionHandler<ExceptionHandler>();
         services.AddProblemDetails();
         
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = AuthService.Issuer,
+                    ValidAudience = AuthService.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AuthService.SecretKey))
+                };
+            });
+
+        services.AddAuthorization();
+        
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseInMemoryDatabase("ContractTestingDb"));
             
@@ -57,6 +78,10 @@ public partial class ApiFixture : IDisposable
         app.UseSwaggerUI();
         app.UseHttpsRedirection();
         app.UseCors();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
         app.UseExceptionHandler();
 
         app.MapEndpoints();

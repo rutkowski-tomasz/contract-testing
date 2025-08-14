@@ -6,20 +6,36 @@ Accept: application/json
 
 ###
 
+# @name login
+POST {{ApiBaseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+
+###
+
+# @name allProducts
 GET {{ApiBaseUrl}}/api/products
 Accept: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 ###
 
-# Get a specific product by ID
+# @name oneProduct
 GET {{ApiBaseUrl}}/api/products/1
 Accept: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 ###
 
-# Create a new product
+# @name createProduct
 POST {{ApiBaseUrl}}/api/products
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 {
   "name": "Test Product",
@@ -29,9 +45,10 @@ Content-Type: application/json
 
 ###
 
-# Update an existing product
+# @name updateProduct
 PUT {{ApiBaseUrl}}/api/products/1
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 {
   "name": "Updated Product Name",
@@ -41,20 +58,23 @@ Content-Type: application/json
 
 ###
 
-# Delete a product
+# @name deleteProduct
 DELETE {{ApiBaseUrl}}/api/products/1
+Authorization: Bearer {{login.response.body.token}}
 
 ###
 
-# Test with non-existent product ID (should return 404)
+# @name getNonExistingProduct
 GET {{ApiBaseUrl}}/api/products/999
 Accept: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 ###
 
-# Test updating non-existent product (should return 404)
+# @name updateNonExistingProduct
 PUT {{ApiBaseUrl}}/api/products/999
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 {
   "name": "Non-existent Product",
@@ -64,5 +84,6 @@ Content-Type: application/json
 
 ###
 
-# Test deleting non-existent product (should return 404)
+# @name deleteNonExistingProduct
 DELETE {{ApiBaseUrl}}/api/products/999
+Authorization: Bearer {{login.response.body.token}}
